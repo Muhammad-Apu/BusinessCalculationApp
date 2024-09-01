@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Two-Column Layout</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            /* background-color: #4CAF50; */
+            /* color: white; */
+            text-align: center;
+            /* padding: 10px 0; */
+        }
+
+        footer {
+            text-align: center;
+            /* padding: 5px 0; */
+            /* margin-top: auto; Push footer to the bottom */
+        }
+
+        /* Container Styles */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        /* Column Styles */
+        .column {
+            flex: 1;
+            max-width: 45%;
+            margin: 10px;
+        }
+
+        /* Label Styles */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Input Field Styles */
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        /* Button Styles */
+        button {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            padding: 10px 20px; /* Padding */
+            border: none; /* Remove borders */
+            border-radius: 4px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+            font-size: 16px; /* Font size */
+            transition: background-color 0.3s ease; /* Smooth transition */
+        }
+
+        button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        .validationMsg {
+            margin: 5px;
+        }
+
+        #productDetails {
+            font-family: Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        #productDetails td, #productDetails th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #productDetails td button{
+            background-color: #9d3a3a; /* Green background */
+            padding: 3px 5px; /* Padding */
+            border: none; /* Remove borders */
+        }
+        #productDetails td button:hover{
+            background-color: #9d0202; /* Green background */
+        }
+
+        #detailsContainer{
+            display: none;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .column {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Araf's Trading (Business Calculation)</h2>
+        <button id="resetBtn">সব কিছু মুছে ফেলুন</button>
+    </header>
+
+    <div id="formContainer" class="container">
+        <div class="column">
+            <label for="buyingWeightFieldId">1. মাল কেনা হয়েছে(Kg=?)</label>
+            <input type="text" id="buyingWeightFieldId" class="styled-input" placeholder="xxxxx.xxx Kg"> 
+            
+            <label for="buyingDateFieldId">2. ক্রয়ের তারিখ</label>
+            <input type="date" id="buyingDateFieldId" class="styled-input">
+
+            <label for="buyingPrizeFieldId">3. ক্রয় করা মালের দাম (Taka=?)</label>
+            <input type="text" id="buyingPrizeFieldId" class="styled-input" placeholder="xxxx Taka">     
+            
+            <div>
+                <button id="buyingRecordAddBtn">সংযুক্ত করা</button>
+            </div>
+
+            <h5 id="buyingValidationMsgId" class="validationMsg"></h5>
+
+            <h5 id="buyingCalculationStatementId"></h5>
+
+            <button id="buyingRecordsDetails">বিস্ত্রারিত দেখুন</button>      
+        </div> 
+
+        <div class="column">
+            <label for="sellingWeightFieldId">1. মাল বিক্রি হয়েছে(Kg=?)</label>
+            <input type="text" id="sellingWeightFieldId" class="styled-input" placeholder="xxxxx.xxx Kg"> 
+            
+            <label for="sellingDateFieldId">2. বিক্রয়ের তারিখ</label>
+            <input type="date" id="sellingDateFieldId" class="styled-input">
+
+            <label for="sellingPrizeFieldId">3. বিক্রিত মালের দাম (Taka=?)</label>
+            <input type="text" id="sellingPrizeFieldId" class="styled-input" placeholder="xxxx Taka">     
+            
+            <div>
+                <button id="sellingRecordAddBtn">সংযুক্ত করা</button>
+            </div>
+
+            <h5 id="sellingValidationMsgId" class="validationMsg"></h5>
+
+            <h5 id="sellingCalculationStatementId"></h5>
+
+            <button id="sellingRecordsDetails">বিস্ত্রারিত দেখুন</button>      
+        </div> 
+    </div>
+
+    <div id="detailsContainer" class= "container">
+
+        <h2 id="detailsHeader"></h2>
+        <table id="productDetails">    
+        </table>
+        
+        <div style="padding-top: 30px;">
+            <h5 id="CalculationStatementId"></h5>
+        </div>
+        <div style="padding-top: 30px;">
+        <button id="returnBtn">আবার ফরমে ফিরে যান</button>
+        </div>
+
+    </div>
+
+    
+
+    <footer>
+        <h3 id="profitCalculationId"></h3>
+    </footer>
+
+    <script>
+        // For encapsulation
+        (function(){
+
+            // Reference of buying and selling statement elements
+            const buyingCalculationStatement=document.getElementById("buyingCalculationStatementId")
+            const sellingCalculationStatement=document.getElementById("sellingCalculationStatementId")
+
+            // reset btn event handling
+            document.getElementById("resetBtn").addEventListener("click",function(){
+                localStorage.clear()
+                location.reload()
+            })
+
+            // Input Field Validation
+            function validate(weightField,dateField,prizeField){ 
+                if(weightField.value!="" && dateField.value!="" &&  prizeField.value!=""){
+                    return true
+                }else{
+                    return false;
+                }            
+            }
+
+            // adding record Function
+            function addingRecord(toWhom,weightField,dateField,prizeField){
+                // Getting the Records From LocalStorage
+                let localRecordsArray=[]
+                let localRecords=JSON.parse(localStorage.getItem(toWhom))
+                
+                
+                if(localRecords!=null){
+                    // console.log("yes")
+                    localRecordsArray=localRecords;
+                }
+                
+                
+                // console.log(localRecordsArray)
+                // Adding record to RecordsArray
+                localRecordsArray.push({
+                    weight:weightField.value,
+                    date:dateField.value,
+                    prize:prizeField.value
+                })  
+
+                // reset Fields Value
+                weightField.value="",
+                dateField.value="",
+                prizeField.value=""
+                
+                // Adding Records to LocalStorage
+                localStorage.setItem(toWhom,JSON.stringify(localRecordsArray))
+            }
+            
+            // Do anyside record Calculaton of the statement
+            function anySideRecordsCalculation(ofWhich){
+                let localRecords=JSON.parse(localStorage.getItem(ofWhich))
+
+                if(localRecords!=null){
+                    totalWeight=0,totalPrize=0;
+                    for(let record of localRecords){
+                            totalWeight+=Number(record.weight);
+                            totalPrize+=Number(record.prize);
+                        }
+                    return {
+                        "totalWeight":totalWeight,
+                        "totalPrize":totalPrize 
+                    } 
+                }else{
+                    return null;
+                }
+                            
+            }
+            
+            // Adding calculations total Weight ANd Prize as a Obj to local storage 
+            function addStatementObj(toWhom,totalWeightANdPrize){
+                localStorage.setItem(toWhom,JSON.stringify(totalWeightANdPrize))
+            }
+
+            // Showing Statment
+            function showingStatement(ofWhitch,calculationStatement){
+                // Getting the statement Object
+                let statementObj=JSON.parse(localStorage.getItem(ofWhitch))
+                
+                if(statementObj!=null){
+                    // Getting value of total wieght and prize
+                    const {totalWeight,totalPrize}=statementObj
+                    
+                    if(ofWhitch==="buyingStatementObj"){
+                        // calculate unit per prize
+                        let kgPerPrize=totalPrize/totalWeight
+
+                        // showing Buying statement
+                        calculationStatement.innerText=`মোট ${totalWeight} কেজি মাল, ${totalPrize} টাকা মুল্যে কেনা হয়েছে। প্রতি কেজি মালের দাম পরেছে ${kgPerPrize} টাকা।`  
+                    
+                        // Adding KgperUnit in the buyingStatementObj
+                        let buyingStatementObj={
+                            "totalWeight":totalWeight,
+                            "totalPrize":totalPrize,
+                            "kgPerPrize":kgPerPrize
+                        }
+                        localStorage.setItem("buyingStatementObj",JSON.stringify(buyingStatementObj));
+                    }
+                    else if(ofWhitch==="sellingStatementObj"){
+                        // showing selling statement
+                        calculationStatement.innerText=`মোট ${totalWeight} কেজি  মাল, ${totalPrize} টাকা মুল্যে বিক্রি হয়েছে।` 
+                    }
+                }
+                else{
+                    calculationStatement.innerText="" 
+                }
+
+            }
+            
+            
+            
+            
+
+
+
+            // function For Adding Buying Records
+            function addingBuyingRecord(){
+                // Geting The Reference of Input Fields
+                const buyingWeightField=document.getElementById("buyingWeightFieldId")
+                const buyingDateField=document.getElementById("buyingDateFieldId")
+                const buyingPrizeField=document.getElementById("buyingPrizeFieldId")
+
+                // Call validate method for validation of Input Fields
+                let validation=validate(buyingWeightField,buyingDateField,buyingPrizeField)
+
+                // Get the Reference of html elements in which the validation msg will be show 
+                let msgObj=document.getElementById("buyingValidationMsgId")
+
+                if(validation){
+                    // call record adding Function
+                    addingRecord("allBuyingRecords",buyingWeightField,buyingDateField,buyingPrizeField)
+
+                    // call calculation function to calculate buying statement
+                    let totalWeightANdPrize=anySideRecordsCalculation("allBuyingRecords")
+                    
+                    // Adding calculations total Weight ANd Prize as a Obj to local storage for Buying statement
+                    addStatementObj("buyingStatementObj",totalWeightANdPrize)
+
+                    // Showing Buying Statment
+                    showingStatement("buyingStatementObj",buyingCalculationStatement)
+                    
+                    // Showing success Msg if Added
+                    msgObj.style.color="Green"
+                    msgObj.innerText="স্বাগতম!!! তথ্য গুলো ঠিকমত নেওয়া হয়েছে" 
+
+                }
+                else{      
+                    // Showing Error Msg
+                    msgObj.style.color="red"
+                    msgObj.innerText="**সবগুলো তথ্য ঠিকমত পুরন করুন" 
+                }
+            }
+
+            // buyingRecordAddBtn Event Handling
+            document.getElementById("buyingRecordAddBtn").addEventListener("click",addingBuyingRecord)
+
+
+            // show Main Calculation Statement On Footer
+            function showMainCalculationStatement(){
+                // getting statement obj
+                const buyingStatementObj=JSON.parse(localStorage.getItem("buyingStatementObj"))
+                const sellingStatementObj=JSON.parse(localStorage.getItem("sellingStatementObj"))
+
+                if(buyingStatementObj!=null && sellingStatementObj!=null){
+                    // initiates variable
+                    let totalSellingWeight=sellingStatementObj.totalWeight
+                    let totalsellingBuyingPrize=buyingStatementObj.kgPerPrize*totalSellingWeight
+                    let totalSellingPrize=sellingStatementObj.totalPrize
+                    const profitCalculationId=document.getElementById("profitCalculationId")
+
+                    // Showing main statement
+                    profitCalculationId.innerText=`মোট বিক্রি করা ${totalSellingWeight} কেজি মাল, কিনতে লেগেছে ${totalsellingBuyingPrize} টাকা। আর বিক্রি হয়েছে ${totalSellingPrize} টাকা, সুতরাং মুনাফা হয়েছে ${Number(totalSellingPrize)-totalsellingBuyingPrize} টাকা।`
+                }else{
+                    profitCalculationId.innerText=""
+                }
+            }
+
+            
+
+            // function For Adding Selling Records
+            function addingSellingRecord(){
+                // Geting The Reference of Input Fields
+                const sellingWeightField=document.getElementById("sellingWeightFieldId")
+                const sellingDateField=document.getElementById("sellingDateFieldId")
+                const sellingPrizeField=document.getElementById("sellingPrizeFieldId")
+
+                // Call validate method for validation of Input Fields
+                let validation=validate(sellingWeightField,sellingDateField,sellingPrizeField)
+
+                // Get the Reference of html elements in which the validation msg will be show 
+                let msgObj=document.getElementById("sellingValidationMsgId")
+
+                if(validation){
+                    // call record adding Function
+                    addingRecord("allSellingRecords",sellingWeightField,sellingDateField,sellingPrizeField)
+
+                    // call calculation function to calculate selling statement
+                    let totalWeightANdPrize=anySideRecordsCalculation("allSellingRecords")
+                    
+                    // Adding calculations total Weight ANd Prize as a Obj to local storage for selling statement
+                    addStatementObj("sellingStatementObj",totalWeightANdPrize)
+
+                    // Showing selling Statment
+                    showingStatement("sellingStatementObj",sellingCalculationStatement)
+                    
+                    // Showing success Msg if Added
+                    msgObj.style.color="Green"
+                    msgObj.innerText="স্বাগতম!!! তথ্য গুলো ঠিকমত নেওয়া হয়েছে" 
+
+                    // show Main Calculation Statement
+                    showMainCalculationStatement()
+
+                }
+                else{      
+                    // Showing Error Msg
+                    msgObj.style.color="red"
+                    msgObj.innerText="**সবগুলো তথ্য ঠিকমত পুরন করুন" 
+                }
+            }
+
+            // sellingRecordAddBtn Event Handling
+            document.getElementById("sellingRecordAddBtn").addEventListener("click",addingSellingRecord)
+
+
+
+
+
+
+
+            // Define deleteRecord function inside the IIFE
+            function deleteRecord(recordId,ofWhitch,details) {
+                //  Delete records by using splice method
+                details.splice(recordId,1)
+
+                if(details.length==0){
+                    localStorage.setItem(ofWhitch,null)
+                }else {
+                    localStorage.setItem(ofWhitch,JSON.stringify(details))
+                }
+                
+                
+                // call calculation function to calculate buying statement
+                let totalWeightANdPrize=anySideRecordsCalculation(ofWhitch)
+
+                let statementKey,calculationStatementObj
+                if(ofWhitch==="allBuyingRecords"){
+                    statementKey="buyingStatementObj"
+                    calculationStatementObj=buyingCalculationStatement
+                }
+                else if(ofWhitch==="allSellingRecords"){
+                    statementKey="sellingStatementObj"
+                    calculationStatementObj=sellingCalculationStatement
+                }
+                    
+                // Adding calculations total Weight ANd Prize as a Obj to local storage for Buying statement
+                addStatementObj(statementKey,totalWeightANdPrize)
+
+                // Showing Buying Statment
+                showingStatement(statementKey,calculationStatementObj)
+
+                // showingRecordsDetails
+                showingRecordsDetails(ofWhitch)
+
+                // shwoing main calculate statment
+                showMainCalculationStatement()
+
+            }
+
+            // shwoing records details
+            function showingRecordsDetails(ofWhitch){
+                // getting reference of html content
+                const formContainer=document.getElementById("formContainer")
+                const detailsContainer=document.getElementById("detailsContainer")
+                const detailsHeader=document.getElementById("detailsHeader")
+                const productDetails=document.getElementById("productDetails")
+                const calculationStatementId=document.getElementById("CalculationStatementId")
+
+                // make display details container and disapear form container
+                formContainer.style.display="none"
+                detailsContainer.style.display="flex"
+
+                // getting the obj of which details
+                let details=JSON.parse(localStorage.getItem(ofWhitch))
+                let statementKey, calculationStatement
+
+                if(ofWhitch==="allBuyingRecords"){
+                    statementKey="buyingStatementObj"
+                    calculationStatement=buyingCalculationStatement
+                }
+
+                if(ofWhitch==="allSellingRecords"){
+                    statementKey="sellingStatementObj"
+                    calculationStatement=sellingCalculationStatement
+                } 
+                
+                
+                // Generating the records table
+                let innnerHtml=`<tr>
+                                    <th>ডেট</th>
+                                    <th>মালের ওজন</th>
+                                    <th>মালের দাম</th>
+                                    <th>একশন</th>
+                                </tr>`;
+                
+                if(details!=null){               
+                    let count=0;
+                    for(data of details){
+                    innnerHtml+=`<tr>
+                                    <td>${data.date}</td>
+                                    <td>${data.weight} Kg</td>
+                                    <td>${data.prize} Taka</td>
+                                    <td><button class="deleteBtn" value="${count}">মুছুন</button></td>
+                                </tr>`
+                        count++;
+                    }
+
+                    // showing records
+                    detailsHeader.innerText="কেনা মালের বিবরন" 
+                    productDetails.innerHTML=innnerHtml;
+                    showingStatement(statementKey,calculationStatementId)
+
+                    // Add event listeners to delete buttons
+                    const deleteButtons = document.querySelectorAll(".deleteBtn");
+                    deleteButtons.forEach(button => {
+                        button.addEventListener("click", function () {
+                            deleteRecord(this.value,ofWhitch,details);
+                        });
+                    });
+
+                }
+                else{
+                    detailsHeader.innerText="এখন পর্যন্ত কিছু সংযুক্ত করা হয় নি...!" 
+                    productDetails.innerHTML=innnerHtml;
+                    showingStatement(statementKey,calculationStatementId)
+                }
+            }
+
+            // return Button Event Handling
+            document.getElementById("returnBtn").onclick=function(){
+                    formContainer.style.display="flex";
+                    detailsContainer.style.display="none";
+                    document.getElementById("buyingValidationMsgId").innerText=""
+                    document.getElementById("sellingValidationMsgId").innerText=""
+            }
+            
+            // buying Records Details button event handling
+            document.getElementById("buyingRecordsDetails").addEventListener("click",function(){
+                showingRecordsDetails("allBuyingRecords")
+                }
+            )
+
+            // selling Records Details button event handling
+            document.getElementById("sellingRecordsDetails").addEventListener("click",function(){
+                showingRecordsDetails("allSellingRecords")
+                }
+            )
+
+            
+
+
+            // Showing Statement
+            showingStatement("buyingStatementObj",buyingCalculationStatement)
+            showingStatement("sellingStatementObj",sellingCalculationStatement)
+            showMainCalculationStatement()
+            
+
+
+            // Debugging for testing the app 
+            // localStorage.clear()
+            // console.log(localStorage.getItem("allBuyingRecords"))
+            // console.log(localStorage.getItem("buyingStatementObj"))
+            // console.log(localStorage.getItem("allSellingRecords"))
+            // console.log(localStorage.getItem("sellingStatementObj"))
+        
+        })()
+        
+    
+        
+
+    </script>
+
+</body>
+</html>
